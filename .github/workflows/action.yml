@@ -21,7 +21,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const script = require('./script.js')
+            const script = require('../../script.js')
             const connString = process.env.DATABASE_CONNECTION_STRING
             await script({ connString })
       
