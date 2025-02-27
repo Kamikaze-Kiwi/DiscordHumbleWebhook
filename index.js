@@ -3,10 +3,14 @@ import mysql2 from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export default async ({ connectionString = null }) => {
-    const sql = await mysql2.createConnection(connectionString || process.env.DATABASE_CONNECTION_STRING);
+export default async () => {
+    console.log("1");
+
+    const sql = await mysql2.createConnection(process.env.DATABASE_CONNECTION_STRING);
+    console.log("2");
     const alreadyPushed = (await sql.query("SELECT * FROM PushedBundles"))[0].map(row => row.Bundle);
     const webhooks = (await sql.query("SELECT * FROM Webhooks"))[0];
+    console.log("3");
 
     puppeteer.launch().then(async browser => {
         const page = await browser.newPage();
