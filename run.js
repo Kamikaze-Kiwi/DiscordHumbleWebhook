@@ -16,6 +16,8 @@ console.log("Starting puppeteer...");
 puppeteer.launch().then(async browser => {
     const page = await browser.newPage();
 
+    page.setGeolocation({ latitude: 36, longitude: -85 });
+
     console.log("Opening Humble Bundle Website...");
 
     await page.goto('https://www.humblebundle.com/games');
@@ -43,16 +45,12 @@ puppeteer.launch().then(async browser => {
 
         console.log(`Scraping bundle ${i} (${bundles[i].name})...`);
 
-        // Take a screenshot and print the base64 image to the console
-        const screenshot = await page.screenshot({ encoding: "base64" });
-        console.log(screenshot);
-
         const bundle = await page.evaluate((bundle) => {
             return {
                 name: bundle.name,
                 href: bundle.href,
                 image: document.querySelector(".bundle-logo").src,
-                price: document.querySelector(".tier-header").innerText.match(/€[0-9.]+/)[0],
+                price: document.querySelector(".tier-header").innerText.match(/[€$][0-9.]+/)[0],
                 offerEnd: {
                     days: parseInt(document.querySelector(".js-days").innerText),
                     hours: parseInt(document.querySelector(".js-hours").innerText),
