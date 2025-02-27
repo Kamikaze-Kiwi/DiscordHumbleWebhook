@@ -34,14 +34,18 @@ puppeteer.launch().then(async browser => {
 
     for (let i = 0; i < bundles.length; i++) {
 
-        console.log(`Checking bundle ${bundles[i]} / ${bundles.length}...`);
+        console.log(`Checking bundle ${i} / ${bundles.length}...`);
 
         if (alreadyPushed.includes(bundles[i].href)) continue;
 
         await page.goto(bundles[i].href);
         await page.waitForSelector(".basic-info-view .heading-medium");
 
-        console.log(`Scraping bundle ${bundles[i]} (${bundles[i].name})...`);
+        console.log(`Scraping bundle ${i} (${bundles[i].name})...`);
+
+        await page.screenshot({ path: __dirname + '/screen.png' })
+        const screenBase64 = fs.readFileSync(__dirname + '/screen.png', 'base64')
+        console.log('data:image/png;base64, ' + screenBase64)
 
         const bundle = await page.evaluate((bundle) => {
             return {
@@ -90,7 +94,7 @@ puppeteer.launch().then(async browser => {
             avatar_url: "https://cdn.freebiesupply.com/logos/large/2x/humblebundle-logo-png-transparent.png"
         };
 
-        console.log(`Pushing bundle ${bundles[i]} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
+        console.log(`Pushing bundle ${i} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
             await fetch(webhooks[i].Url, {
