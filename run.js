@@ -3,13 +3,25 @@ import mysql2 from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
+console.log("Connecting to database...");
+
 const sql = await mysql2.createConnection(process.env.DATABASE_CONNECTION_STRING);
 const alreadyPushed = (await sql.query("SELECT * FROM PushedBundles"))[0].map(row => row.Bundle);
 const webhooks = (await sql.query("SELECT * FROM Webhooks"))[0];
 
+console.log(`Retrieved ${alreadyPushed.length} pushed bundles and ${webhooks.length} webhooks`);
+
+console.log("Starting puppeteer...");
+
 puppeteer.launch().then(async browser => {
     const page = await browser.newPage();
+
+    console.log("Opening Humble Bundle Website...");
+
     await page.goto('https://www.humblebundle.com/games');
+    await page.waitForSelector(".js-games-mosaic");
+
+    console.log("Scraping bundles...");
 
     const bundles = await page.evaluate(() => {
         return [...document.querySelectorAll(".js-games-mosaic a.full-tile-view")].map((bundle) => {
@@ -21,10 +33,15 @@ puppeteer.launch().then(async browser => {
     });
 
     for (let i = 0; i < bundles.length; i++) {
+
+        console.log(`Checking bundle ${bundles[i]} / ${bundles.length}...`);
+
         if (alreadyPushed.includes(bundles[i].href)) continue;
 
         await page.goto(bundles[i].href);
         await page.waitForSelector(".basic-info-view .heading-medium");
+
+        console.log(`Scraping bundle ${bundles[i]} (${bundles[i].name})...`);
 
         const bundle = await page.evaluate((bundle) => {
             return {
@@ -73,6 +90,8 @@ puppeteer.launch().then(async browser => {
             avatar_url: "https://cdn.freebiesupply.com/logos/large/2x/humblebundle-logo-png-transparent.png"
         };
 
+        console.log(`Pushing bundle ${bundles[i]} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
+
         for (let i = 0; i < webhooks.length; i++) {
             await fetch(webhooks[i].Url, {
                 method: "POST",
@@ -86,6 +105,10 @@ puppeteer.launch().then(async browser => {
         await sql.query("INSERT INTO PushedBundles (bundle) VALUES (?)", [bundle.href]);
     };
 
+    console.log("Closing puppeteer and database...");
+
     await browser.close();
     await sql.end();
+
+    console.log("All done!");
 });
