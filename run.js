@@ -43,8 +43,8 @@ puppeteer.launch().then(async browser => {
 
         console.log(`Scraping bundle ${i} (${bundles[i].name})...`);
 
-        await page.screenshot({ path: __dirname + '/screen.png' })
-        const screenBase64 = fs.readFileSync(__dirname + '/screen.png', 'base64')
+        await page.screenshot({ path: '/screen.png' })
+        const screenBase64 = fs.readFileSync( + '/screen.png', 'base64')
         console.log('data:image/png;base64, ' + screenBase64)
 
         const bundle = await page.evaluate((bundle) => {
