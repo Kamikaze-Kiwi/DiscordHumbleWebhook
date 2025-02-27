@@ -5,7 +5,7 @@ dotenv.config();
 
     console.log("1");
 
-    const sql = await mysql2.createConnection(process.env.DATABASE_CONNECTION_STRING);
+    const sql = await mysql2.createConnection('mysql://u47bumpbdfx6mztw:3k1P5vVVmqHlabP9SEEh@b19rhbmyzlk8k6gigabj-mysql.services.clever-cloud.com:3306/b19rhbmyzlk8k6gigabj');
     console.log("2");
     const alreadyPushed = (await sql.query("SELECT * FROM PushedBundles"))[0].map(row => row.Bundle);
     const webhooks = (await sql.query("SELECT * FROM Webhooks"))[0];
