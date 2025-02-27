@@ -3,7 +3,7 @@ import mysql2 from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
-module.exports = async ({ connectionString = null }) => {
+export default async ({ connectionString = null }) => {
     const sql = await mysql2.createConnection(connectionString || process.env.DATABASE_CONNECTION_STRING);
     const alreadyPushed = (await sql.query("SELECT * FROM PushedBundles"))[0].map(row => row.Bundle);
     const webhooks = (await sql.query("SELECT * FROM Webhooks"))[0];
