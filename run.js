@@ -32,6 +32,14 @@ puppeteer.launch().then(async browser => {
         });
     });
 
+    for (let i = 0; i < alreadyPushed.length; i++) {
+        if (!bundles.some(bundle => bundle.href === alreadyPushed[i])) {
+            await sql.query('DELETE FROM PushedBundles WHERE Bundle=(?)', alreadyPushed[i]);
+            console.log(`Bundle ${alreadyPushed[i]} was removed from the pushed bundles list as this bundle expired.`);
+        }
+    }
+
+
     for (let i = 0; i < bundles.length; i++) {
 
         console.log(`Checking bundle ${i + 1} / ${bundles.length}...`);
@@ -76,7 +84,7 @@ puppeteer.launch().then(async browser => {
                         url: bundle.image
                     },
                     footer: {
-                        text: "https://www.humblebundle.com/games/better-with-friend-coop-adventures"
+                        text: bundle.href
                     },
                     url: bundle.href,
                 },
