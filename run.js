@@ -93,6 +93,8 @@ puppeteer.launch().then(async browser => {
         console.log(`Pushing bundle ${i + 1} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
+            webhooks[i].Ping? discordEmbed.content = `<@&${webhooks[i].Ping}>` : "";
+
             await fetch(webhooks[i].Url, {
                 method: "POST",
                 headers: {
