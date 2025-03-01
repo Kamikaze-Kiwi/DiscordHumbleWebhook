@@ -16,8 +16,6 @@ console.log("Starting puppeteer...");
 puppeteer.launch().then(async browser => {
     const page = await browser.newPage();
 
-    page.setGeolocation({ latitude: 36, longitude: -85 });
-
     console.log("Opening Humble Bundle Website...");
 
     await page.goto('https://www.humblebundle.com/games');
@@ -36,21 +34,21 @@ puppeteer.launch().then(async browser => {
 
     for (let i = 0; i < bundles.length; i++) {
 
-        console.log(`Checking bundle ${i} / ${bundles.length}...`);
+        console.log(`Checking bundle ${i + 1} / ${bundles.length}...`);
 
         if (alreadyPushed.includes(bundles[i].href)) continue;
 
         await page.goto(bundles[i].href);
         await page.waitForSelector(".basic-info-view .heading-medium");
 
-        console.log(`Scraping bundle ${i} (${bundles[i].name})...`);
+        console.log(`Scraping bundle ${i + 1} (${bundles[i].name})...`);
 
         const bundle = await page.evaluate((bundle) => {
             return {
                 name: bundle.name,
                 href: bundle.href,
                 image: document.querySelector(".bundle-logo").src,
-                price: document.querySelector(".tier-header").innerText.match(/[€$][0-9.]+/)[0],
+                price: document.querySelector(".tier-header").innerText.match(new RegExp(`[${document.querySelector('.currency-symbol').innerText}][0-9.]+`))[0],
                 offerEnd: {
                     days: parseInt(document.querySelector(".js-days").innerText),
                     hours: parseInt(document.querySelector(".js-hours").innerText),
@@ -92,7 +90,7 @@ puppeteer.launch().then(async browser => {
             avatar_url: "https://cdn.freebiesupply.com/logos/large/2x/humblebundle-logo-png-transparent.png"
         };
 
-        console.log(`Pushing bundle ${i} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
+        console.log(`Pushing bundle ${i + 1} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
             await fetch(webhooks[i].Url, {
