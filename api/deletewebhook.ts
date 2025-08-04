@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         result = await sql`DELETE FROM "Webhooks" WHERE Url = ${webhook}`;
     } catch (error) {
         return res.status(500).json({
-            message: `Internal Server Error while deleting from database`,
+            message: `Internal Server Error while deleting from database. ${error.message}`,
         })
     }
     finally {

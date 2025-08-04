@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(500).json({
-      message: `Internal Server Error while inserting to database`,
+      message: `Internal Server Error while inserting to database. ${error.message}`,
     })
   }
   finally {
