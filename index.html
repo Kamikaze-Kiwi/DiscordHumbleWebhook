@@ -233,6 +233,11 @@
         fetch("https://humble-webhook-registrator.vercel.app/api/addwebhook", requestOptions)
             .then((response) => response.text())
             .then((result) => console.log(result))
+            .then(() => {
+                document.querySelector("#webhook").value = ""; // Clear the input field after successful registration
+                document.querySelector("#role").value = ""; // Clear the role input field if it was used
+                alert("Webhook registered successfully. If everything was set up correctly, you should receive a test notification in your Discord channel momentarily.");
+            })
             .catch((error) => console.error(error));
     }
 
@@ -269,6 +274,10 @@
         fetch("https://humble-webhook-registrator.vercel.app/api/deletewebhook", requestOptions)
             .then((response) => response.text())
             .then((result) => console.log(result))
+            .then(() => {
+                document.querySelector("#webhook-delete").value = ""; // Clear the input field after successful removal
+                alert("Webhook removed successfully.");
+            })
             .catch((error) => console.error(error));
     }
 </script>
