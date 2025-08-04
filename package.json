@@ -4,6 +4,7 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
+    "@vercel/node": "^2.3.0",
     "dotenv": "^16.4.7",
     "postgres": "^3.4.7",
     "puppeteer": "^24.3.0"
