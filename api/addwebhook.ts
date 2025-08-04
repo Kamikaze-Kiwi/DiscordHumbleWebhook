@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sql = postgres(connectionString);
 
   try {
-    const result = await sql`INSERT INTO Webhooks (Url, Currency, Ping) VALUES (${webhook}, ${currency}, ${ping})`;
+    const result = await sql`INSERT INTO "Webhooks" (Url, Currency, Ping) VALUES (${webhook}, ${currency}, ${ping})`;
   } catch (error) {
     if (error.code === '23505') { // PostgreSQL unique violation error code
       return res.status(409).json({
