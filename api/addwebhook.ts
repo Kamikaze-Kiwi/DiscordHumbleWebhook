@@ -26,6 +26,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const result = await sql`INSERT INTO webhooks (url, currency, ping) VALUES (${webhook}, ${currency}, ${ping})`;
+
+      // Send a welcome message to the new webhook to confirm it's working
+      await fetch(webhook, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "content": "This channel has now been set up to be notified of any new Humble Bundle as soon as they come out. To modify or delete this integration, please visit https://humble-webhook-registrator.vercel.app/. \n\nThis service is not affiliated with Humble Bundle. If you experience any issues, they can be reported at https://github.com/Kamikaze-Kiwi/DiscordHumbleWebhook/issues/new.",
+          "tts": false,
+          "components": [],
+          "actions": {},
+          "username": "Humble Bundle",
+          "avatar_url": "https://cdn.freebiesupply.com/logos/large/2x/humblebundle-logo-png-transparent.png"
+        })
+      });
+
   } catch (error) {
     if (error.code === '23505') { // PostgreSQL unique violation error code
       return res.status(409).json({
