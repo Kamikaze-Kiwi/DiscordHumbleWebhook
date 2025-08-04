@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humble Webhook registration</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #222222;
+            color: white;
+            max-width: 70vw;
+            margin: 0 auto;
+        }
+
+        .action-selection {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .toggle-button {
+            padding: 10px 20px;
+            background-color: #333333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .guide {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px;
+            background-color: #333333;
+            border-radius: 5px;
+            color: white;
+        }
+
+        input,
+        select {
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #444444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555555;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+        }
+
+        p {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        select {
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="header">Humble Webhook registration</h1>
+
+    <div class="action-selection">
+        <button class="toggle-button" onclick="ToggleView('register')">Register Webhook</button>
+        <button class="toggle-button" onclick="ToggleView('edit')">Edit Webhook</button>
+        <button class="toggle-button" onclick="ToggleView('remove')">Remove Webhook</button>
+    </div>
+
+    <div class="guide hidden register">
+        <h1>Register Webhook</h1>
+        <h3>Obtaining a webhook</h3>
+        <p>1. Go to your discord server</p>
+        <p>2. Right click on the channel you want to send the notifications to</p>
+        <p>3. Click on "Edit Channel"</p>
+        <p>4. Go to "Integrations" tab</p>
+        <p>5. Click on "Create Webhook"</p>
+        <p>6. Copy the webhook URL</p>
+
+        <h3>Registering the webhook</h3>
+        <p>1. Paste the webhook URL in the input field below</p>
+        <input type="text" name="webhook" id="webhook" placeholder="Webhook URL" autocomplete="off">
+        <p>2. Select the currency you want to receive notifications in (Currently only $USD is supported).</p>
+        <select name="currency" id="currency" autocomplete="off">
+            <option selected value="$">$USD</option>
+        </select>
+        <p>3. Select who you want to ping when a notification is sent, or leave it on pinging nobody.</p>
+        <select name="ping" id="ping" onchange="ToggleRoleInput()" autocomplete="off">
+            <option selected value="none">Send no ping</option>
+            <option value="everyone">Ping @everyone</option>
+            <option value="here">Ping @here</option>
+            <option value="role">Ping a specific role</option>
+        </select>
+        <div class="role hidden">
+            <h4>Obtaining the role id</h4>
+            <p>1. Go to the server settings in your discord server</p>
+            <p>2. Click on "Roles"</p>
+            <p>3. Right click on the role you want to ping</p>
+            <p>4. Click on "Copy ID"</p>
+            <p>5. Paste the role ID below</p>
+            <input type="text" name="role" id="role" placeholder="Role ID" autocomplete="off">
+        </div>
+
+        <br>
+        <p>4. Once everything has been set above, register using the button below.</p>
+        <button onclick="RegisterWebhook()">Register Webhook</button>
+    </div>
+
+    <div class="guide hidden edit">
+        <h1>Edit Webhook</h1>
+        <p>Currently not implemented. For now, you can delete the webhook instead, and create a new one.</p>
+
+        <button>Edit Webhook</button>
+    </div>
+
+    <div class="guide hidden remove">
+        <h3>Removing a webhook</h3>
+        <p>1. Go to your discord server where you added the webhook</p>
+        <p>2. Right click on the channel you added the webhook to</p>
+        <p>3. Click on "Edit Channel"</p>
+        <p>4. Go to "Integrations" tab</p>
+        <p>5. Click on the three dots on the right side of the webhook you want to remove</p>
+        <p>6. Click on "Copy webhook URL"</p>
+        <p>7. Paste the webhook URL below</p>
+        <input type="text" name="webhook-delete" id="webhook-delete" placeholder="Webhook URL" autocomplete="off">
+        <p>8. Click on the button below to remove the webhook</p>
+        <button onclick="RemoveWebhook()">Remove Webhook</button>
+    </div>
+</body>
+
+</html>
+
+
+<script>
+    function ToggleView(viewToShow) {
+        const views = document.querySelectorAll(".guide");
+        views.forEach((view) => {
+            view.classList.add("hidden");
+        });
+
+        const view = document.querySelector(`.${viewToShow}`);
+        view.classList.remove("hidden");
+    }
+
+    ToggleRoleInput(); // For the edge-case where where role selection was cached and the page was reloaded
+    function ToggleRoleInput() {
+        if (document.querySelector("#ping").value === "role") {
+            document.querySelector(".role").classList.remove("hidden");
+        }
+        else {
+            document.querySelector(".role").classList.add("hidden");
+        }
+    }
+
+    function RegisterWebhook() {
+        const webhook = document.querySelector("#webhook").value;
+        const currency = document.querySelector("#currency").value;
+        const ping = (document.querySelector("#ping").value === "role") ? document.querySelector("#role").value : document.querySelector("#ping").value;
+
+        if (!webhook) {
+            alert("Please ensure the webhook URL has been filled out.");
+            return;
+        }
+
+        if (ping === "role" && !role) {
+            alert("Please ensure the role ID has been filled out.");
+            return;
+        }
+
+        if (ping === "role" && isNaN(ping)) {
+            alert("Role ID should be a number. Please follow the instructions to obtain the role ID.");
+            return;
+        }
+
+        if (!webhook.includes("discord.com/api/webhooks/")) {
+            alert("Webhook URL is invalid. Please follow the instructions to obtain the webhook URL.");
+            return;
+        }
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        const urlencoded = new URLSearchParams();
+        urlencoded.append("webhook", webhook);
+        urlencoded.append("currency", currency);
+        urlencoded.append("ping", ping);
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: "follow"
+        };
+
+        fetch("https://humble-webhook-registrator.vercel.app/api/addwebhook", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+    }
+
+    function EditWebhook() {
+        // Not implemented
+    }
+
+    function RemoveWebhook() {
+        const webhook = document.querySelector("#webhook-delete").value;
+
+        if (!webhook) {
+            alert("Please ensure the webhook URL has been filled out.");
+            return;
+        }
+
+        if (!webhook.includes("discord.com/api/webhooks/")) {
+            alert("Webhook URL is invalid. Please follow the instructions to obtain the webhook URL.");
+            return;
+        }
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        const urlencoded = new URLSearchParams();
+        urlencoded.append("webhook", webhook);
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: "follow"
+        };
+
+        fetch("https://humble-webhook-registrator.vercel.app/api/removewebhook", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+    }
+</script>
