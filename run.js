@@ -101,17 +101,17 @@ puppeteer.launch().then(async browser => {
         console.log(`Pushing bundle ${i + 1} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
-            if (webhooks[i].Ping) {
-                if (webhooks[i].Ping === "everyone" || webhooks[i].Ping === "here") {
-                    discordEmbed.content = `@${webhooks[i].Ping}`;
+            if (webhooks[i].ping) {
+                if (webhooks[i].ping === "everyone" || webhooks[i].ping === "here") {
+                    discordEmbed.content = `@${webhooks[i].ping}`;
                 } else {
-                    discordEmbed.content = `<@&${webhooks[i].Ping}>`;
+                    discordEmbed.content = `<@&${webhooks[i].ping}>`;
                 }
             } else {
                 discordEmbed.content = "";
             }
 
-            await fetch(webhooks[i].Url, {
+            await fetch(webhooks[i].url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
