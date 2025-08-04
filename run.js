@@ -1,13 +1,13 @@
 import puppeteer from 'puppeteer';
-import mysql2 from 'mysql2/promise';
+import postgres from 'postgres';
 import dotenv from 'dotenv';
 dotenv.config();
 
 console.log("Connecting to database...");
 
-const sql = await mysql2.createConnection(process.env.DATABASE_CONNECTION_STRING);
-const alreadyPushed = (await sql.query("SELECT * FROM PushedBundles"))[0].map(row => row.Bundle);
-const webhooks = (await sql.query("SELECT * FROM Webhooks"))[0];
+const sql = postgres(process.env.DATABASE_CONNECTION_STRING);
+const alreadyPushed = (await sql`SELECT * FROM PushedBundles`).map(row => row.bundle);
+const webhooks = await sql`SELECT * FROM Webhooks`;
 
 console.log(`Retrieved ${alreadyPushed.length} pushed bundles and ${webhooks.length} webhooks`);
 
@@ -34,7 +34,7 @@ puppeteer.launch().then(async browser => {
 
     for (let i = 0; i < alreadyPushed.length; i++) {
         if (!bundles.some(bundle => bundle.href === alreadyPushed[i])) {
-            await sql.query('DELETE FROM PushedBundles WHERE Bundle=(?)', alreadyPushed[i]);
+            await sql`DELETE FROM PushedBundles WHERE bundle = ${alreadyPushed[i]}`;
             console.log(`Bundle ${alreadyPushed[i]} was removed from the pushed bundles list as this bundle expired.`);
         }
     }
@@ -120,7 +120,7 @@ puppeteer.launch().then(async browser => {
             });
         }
 
-        await sql.query("INSERT INTO PushedBundles (bundle) VALUES (?)", [bundle.href]);
+        await sql`INSERT INTO PushedBundles (bundle) VALUES (${bundle.href})`;
     };
 
     console.log("Closing puppeteer and database...");

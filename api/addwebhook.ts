@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import mysql2 from 'mysql2/promise';
+import postgres from 'postgres';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -22,12 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!connectionString) {
     return res.status(500).json({ message: `Internal Server Error while connecting to database` });
   }
-  const connection = await mysql2.createConnection(connectionString);
+  const sql = postgres(connectionString);
 
   try {
-    const result = await connection.query('INSERT INTO Webhooks (Url, Currency, Ping) VALUES (?, ?, ?)', [webhook, currency, ping]);
+    const result = await sql`INSERT INTO Webhooks (Url, Currency, Ping) VALUES (${webhook}, ${currency}, ${ping})`;
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') { // PostgreSQL unique violation error code
       return res.status(409).json({
         message: `webhook with url [${webhook}] already exists`,
       })
@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   }
   finally {
-    await connection.end();
+    await sql.end();
   }
 
   return res.json({

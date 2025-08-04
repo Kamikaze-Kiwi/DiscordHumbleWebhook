@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import mysql2 from 'mysql2/promise';
+import postgres from 'postgres';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -22,27 +22,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!connectionString) {
         return res.status(500).json({ message: `Internal Server Error while connecting to database` });
     }
-    const connection = await mysql2.createConnection(connectionString);
+    const sql = postgres(connectionString);
 
     let result;
     try {
-        result = await connection.query('DELETE FROM Webhooks WHERE (URL=?)', [webhook]);
+        result = await sql`DELETE FROM Webhooks WHERE Url = ${webhook}`;
     } catch (error) {
         return res.status(500).json({
-            message: `Internal Server Error while inserting to database`,
+            message: `Internal Server Error while deleting from database`,
         })
     }
     finally {
-        await connection.end();
+        await sql.end();
+    }
 
-        if (result[0].affectedRows === 0) {
-            return res.status(404).json({
-                message: `webhook with url [${webhook}] does not exist`,
-            })
-        }
-
-        return res.json({
-            message: `Webhook successfully deleted`,
+    if (result.count === 0) {
+        return res.status(404).json({
+            message: `webhook with url [${webhook}] does not exist`,
         })
     }
+
+    return res.json({
+        message: `Webhook successfully deleted`,
+    })
 }
