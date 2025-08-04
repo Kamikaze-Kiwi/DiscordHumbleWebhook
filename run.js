@@ -101,7 +101,7 @@ puppeteer.launch().then(async browser => {
         console.log(`Pushing bundle ${i + 1} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
-            if (webhooks[i].ping) {
+            if (webhooks[i].ping && webhooks[i].ping !== "none") {
                 if (webhooks[i].ping === "everyone" || webhooks[i].ping === "here") {
                     discordEmbed.content = `@${webhooks[i].ping}`;
                 } else {
