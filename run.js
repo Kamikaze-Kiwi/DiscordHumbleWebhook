@@ -111,15 +111,18 @@ puppeteer.launch().then(async browser => {
                 discordEmbed.content = "";
             }
 
-            await fetch(webhooks[i].url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(discordEmbed)
-            });
+            try {
+                await fetch(webhooks[i].url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(discordEmbed)
+                });
+            } catch (error) {
+                console.error(`Error sending webhook to ${webhooks[i].url}:`, error);
+            }
         }
-
         await sql`INSERT INTO pushedbundles (bundle) VALUES (${bundle.href})`;
     };
 
