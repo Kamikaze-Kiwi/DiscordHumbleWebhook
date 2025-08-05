@@ -18,16 +18,17 @@ puppeteer.launch().then(async browser => {
 
     console.log("Opening Humble Bundle Website...");
 
-    await page.goto('https://www.humblebundle.com/games');
+    await page.goto('https://www.humblebundle.com/bundles');
     await page.waitForSelector(".js-games-mosaic");
 
     console.log("Scraping bundles...");
 
     const bundles = await page.evaluate(() => {
-        return [...document.querySelectorAll(".js-games-mosaic a.full-tile-view")].map((bundle) => {
+        return [...document.querySelectorAll("a.full-tile-view")].map((bundle) => {
             return {
                 href: bundle.href.split('?')[0],
-                name: bundle.querySelector(".name").innerHTML
+                name: bundle.querySelector(".name").innerHTML,
+                category: bundle.pathname.split('/')[1]
             }
         });
     });
@@ -55,15 +56,16 @@ puppeteer.launch().then(async browser => {
             return {
                 name: bundle.name,
                 href: bundle.href,
+                category: bundle.category,
                 image: document.querySelector(".bundle-logo").src,
                 price: document.querySelector(".tier-header").innerText.match(new RegExp(`[${document.querySelector('.currency-symbol').innerText}][0-9.]+`))[0],
                 offerEnd: {
-                    days: parseInt(document.querySelector(".js-days").innerText),
-                    hours: parseInt(document.querySelector(".js-hours").innerText),
-                    minutes: parseInt(document.querySelector(".js-minutes").innerText)
+                    days: parseInt(document.querySelector(".js-days")?.innerText || 0),
+                    hours: parseInt(document.querySelector(".js-hours")?.innerText || 0),
+                    minutes: parseInt(document.querySelector(".js-minutes")?.innerText || 0)
                 },
-                games: [
-                    [...document.querySelectorAll(".item-details .item-title")].map((game) => game.innerText)
+                items: [
+                    [...document.querySelectorAll(".item-details .item-title")].map((item) => item.innerText)
                 ]
             };
         }, bundles[i]);
@@ -89,7 +91,9 @@ puppeteer.launch().then(async browser => {
                     url: bundle.href,
                 },
                 {
-                    description: `**Price**: ${bundle.price}\n\n**Games**\n ${bundle.games.flat().join("\n")}`,
+                    description: `**Price**: ${bundle.price}\n\n
+                    **${bundle.category.charAt(0).toUpperCase() + bundle.category.slice(1)}**\n
+                    ${bundle.items.flat().slice(0, 20).join("\n")}${bundle.items.flat().length > 20 ? `\n... and ${bundle.items.flat().length - 20} others!` : ""}`,
                 }
             ],
             components: [],
@@ -101,6 +105,10 @@ puppeteer.launch().then(async browser => {
         console.log(`Pushing bundle ${i + 1} (${bundles[i].name}) to ${webhooks.length} webhooks...`);
 
         for (let i = 0; i < webhooks.length; i++) {
+            if (!webhooks[i].categories.includes(bundle.category)) {
+                continue;
+            }
+
             if (webhooks[i].ping && webhooks[i].ping !== "none") {
                 if (webhooks[i].ping === "everyone" || webhooks[i].ping === "here") {
                     discordEmbed.content = `@${webhooks[i].ping}`;
@@ -123,7 +131,7 @@ puppeteer.launch().then(async browser => {
                 console.error(`Error sending webhook to ${webhooks[i].url}:`, error);
             }
         }
-        await sql`INSERT INTO pushedbundles (bundle) VALUES (${bundle.href})`;
+        await sql`INSERT INTO pushedbundles (bundle, category) VALUES (${bundle.href}, ${bundle.category})`;
     };
 
     console.log("Closing puppeteer and database...");

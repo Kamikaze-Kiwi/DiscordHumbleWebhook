@@ -14,6 +14,7 @@
             color: white;
             max-width: 70vw;
             margin: 0 auto;
+            padding-bottom: 2em;
         }
 
         .action-selection {
@@ -80,7 +81,7 @@
             width: 100%;
         }
 
-        input {
+        input:not([type=checkbox]) {
             width: 100%;
         }
 
@@ -140,7 +141,19 @@
         </div>
 
         <br>
-        <p>4. Once everything has been set above, register using the button below.</p>
+
+        <p>4. Select the categories you want to receive notifications for. You can select multiple categories.</p>
+        <label for="category-games">
+            <input type="checkbox" name="category" id="category-games" value="games">Games
+        </label>
+        <label for="category-software">
+            <input type="checkbox" name="category" id="category-software" value="software">Software
+        </label>
+        <label for="category-books">
+            <input type="checkbox" name="category" id="category-books" value="books">Books
+        </label>
+
+        <p>5. Click the button below to register your webhook.</p>
         <button onclick="RegisterWebhook()">Register Webhook</button>
     </div>
 
@@ -194,6 +207,7 @@
         const webhook = document.querySelector("#webhook").value;
         const currency = document.querySelector("#currency").value;
         const ping = (document.querySelector("#ping").value === "role") ? document.querySelector("#role").value : document.querySelector("#ping").value;
+        const categories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(el => el.value);
 
         if (!webhook) {
             alert("Please ensure the webhook URL has been filled out.");
@@ -215,6 +229,11 @@
             return;
         }
 
+        if (categories.length === 0) {
+            alert("Please select at least one category to receive notifications for.");
+            return;
+        }
+
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
@@ -222,6 +241,9 @@
         urlencoded.append("webhook", webhook);
         urlencoded.append("currency", currency);
         urlencoded.append("ping", ping);
+        for (const category of categories) {
+            urlencoded.append("categories", category);
+        }
 
         const requestOptions = {
             method: "POST",
@@ -231,14 +253,23 @@
         };
 
         fetch("/api/addwebhook", requestOptions)
-            .then((response) => response.text())
-            .then((result) => console.log(result))
+            .then((response) => {
+                if(!response.ok) {
+                    return response.text().then(text => { throw new Error(text) })
+                }
+                else {
+                    return response.text();
+                }  
+            })
             .then(() => {
                 document.querySelector("#webhook").value = ""; // Clear the input field after successful registration
                 document.querySelector("#role").value = ""; // Clear the role input field if it was used
                 alert("Webhook registered successfully. If everything was set up correctly, you should receive a test notification in your Discord channel momentarily.");
             })
-            .catch((error) => console.error(error));
+            .catch((error) => {
+                console.error(error);
+                alert("An error occurred while registering the webhook: " + JSON.parse(error.message).message || error);
+            });
     }
 
     function EditWebhook() {

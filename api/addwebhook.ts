@@ -18,6 +18,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   }
 
+  let categories: string[] = [];
+
+  if (Array.isArray(req.body.categories)) {
+    categories = req.body.categories;
+  } else if (typeof req.body.categories === "string") {
+    categories = [req.body.categories];
+  }
+
   const connectionString = process.env.DATABASE_CONNECTION_STRING;
   if (!connectionString) {
     return res.status(500).json({ message: `Internal Server Error while connecting to database` });
@@ -25,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sql = postgres(connectionString);
 
   try {
-    const result = await sql`INSERT INTO webhooks (url, currency, ping) VALUES (${webhook}, ${currency}, ${ping})`;
+    const result = await sql`INSERT INTO webhooks (url, currency, ping, categories) VALUES (${webhook}, ${currency}, ${ping}, ${categories})`;
 
       // Send a welcome message to the new webhook to confirm it's working
       await fetch(webhook, {
@@ -34,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          "content": "This channel has now been set up to be notified of any new Humble Bundle as soon as they come out. To modify or delete this integration, please visit https://humble-webhook-registrator.vercel.app/. \n\nThis service is not affiliated with Humble Bundle. If you experience any issues, they can be reported at https://github.com/Kamikaze-Kiwi/DiscordHumbleWebhook/issues/new.",
+          "content": "This channel has now been set up to be notified of any new Humble Bundle as soon as they come out. You will receive notifications from the following categories: " + categories.join(", ") + ". To modify or delete this integration, please visit https://humble-webhook-registrator.vercel.app/. \n\nThis service is not affiliated with Humble Bundle. If you experience any issues, they can be reported at https://github.com/Kamikaze-Kiwi/DiscordHumbleWebhook/issues/new.",
           "tts": false,
           "components": [],
           "actions": {},
