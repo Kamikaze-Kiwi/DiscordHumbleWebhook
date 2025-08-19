@@ -12,9 +12,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   }
 
-  if (!webhook.startsWith('https://discord.com/api/webhooks/')) {
+  if (webhook.indexOf('discord.com/api/webhooks') === -1) {
     return res.status(400).json({
-      message: `Webhook is invalid. Please ensure it starts with https://discord.com/api/webhooks/`,
+      message: `Webhook URL is invalid. Please follow the instructions to obtain the webhook URL.`,
     })
   }
 
