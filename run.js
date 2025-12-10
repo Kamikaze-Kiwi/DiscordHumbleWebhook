@@ -6,7 +6,7 @@ dotenv.config();
 console.log("Connecting to database...");
 
 const sql = postgres(process.env.DATABASE_CONNECTION_STRING);
-const alreadyPushed = (await sql`SELECT * FROM pushedbundles`).map(row => row.bundle);
+const alreadyPushed = (await sql`SELECT * FROM pushedbundles`);
 const webhooks = await sql`SELECT * FROM webhooks`;
 
 console.log(`Retrieved ${alreadyPushed.length} pushed bundles and ${webhooks.length} webhooks`);
@@ -34,9 +34,14 @@ puppeteer.launch().then(async browser => {
     });
 
     for (let i = 0; i < alreadyPushed.length; i++) {
-        if (!bundles.some(bundle => bundle.href === alreadyPushed[i])) {
-            await sql`DELETE FROM pushedbundles WHERE bundle = ${alreadyPushed[i]}`;
-            console.log(`Bundle ${alreadyPushed[i]} was removed from the pushed bundles list as this bundle expired.`);
+        if (!bundles.some(bundle => bundle.href === alreadyPushed[i].bundle)) {
+            if (new Date(alreadyPushed[i].expire) < new Date()){
+                await sql`DELETE FROM pushedbundles WHERE bundle = ${alreadyPushed[i].bundle}`;
+                console.log(`Bundle ${alreadyPushed[i].bundle} was removed from the pushed bundles list as this bundle expired.`);
+            }
+            else {
+                console.log(`Bundle ${alreadyPushed[i].bundle} is no longer available but has not yet expired, keeping in database until ${new Date(alreadyPushed[i].expire).toISOString()}.`);
+            }
         }
     }
 
@@ -45,7 +50,7 @@ puppeteer.launch().then(async browser => {
 
         console.log(`Checking bundle ${i + 1} / ${bundles.length}...`);
 
-        if (alreadyPushed.includes(bundles[i].href)) continue;
+        if (alreadyPushed.some(pushed => pushed.bundle === bundles[i].href)) continue;
 
         await page.goto(bundles[i].href);
         await page.waitForSelector(".basic-info-view .heading-medium");
@@ -131,7 +136,7 @@ puppeteer.launch().then(async browser => {
                 console.error(`Error sending webhook to ${webhooks[i].url}:`, error);
             }
         }
-        await sql`INSERT INTO pushedbundles (bundle, category) VALUES (${bundle.href}, ${bundle.category})`;
+        await sql`INSERT INTO pushedbundles (bundle, category, expire) VALUES (${bundle.href}, ${bundle.category}, ${offerExpire})`;
     };
 
     console.log("Closing puppeteer and database...");
