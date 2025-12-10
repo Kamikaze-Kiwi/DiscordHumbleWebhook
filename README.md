@@ -7,4 +7,4 @@ If you experience any issues while using this website or in receiving the messag
 
 <img width="524" height="535" alt="image" src="https://github.com/user-attachments/assets/8fba1f29-e617-41ae-b72e-7394ba0e6bb6" />
 
-This product is not in any way affiliated with Humble Bundle.
+This product is not in any way affiliated with Humble Bundle. 
